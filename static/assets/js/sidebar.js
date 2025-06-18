@@ -46,6 +46,7 @@ function loadPage(url) {
       initCreateManagerForm();
       initCreateStaffForm();
       initCreateAdminForm();
+      initInventoryPage();
     })
     .catch(() => {
       document.getElementById("content-area").innerHTML =
@@ -95,8 +96,9 @@ function initPharmacyDropdowns() {
             const item = document.createElement("li");
             item.innerHTML = `
               <label>
-                <input type="${config.inputType}" name="${config.inputType === "radio" ? "assigned_pharmacy" : "pharmacies"
-              }" value="${pharmacy.id}" id="pharmacy-${pharmacy.id}">
+                <input type="${config.inputType}" name="${
+              config.inputType === "radio" ? "assigned_pharmacy" : "pharmacies"
+            }" value="${pharmacy.id}" id="pharmacy-${pharmacy.id}">
                 ${pharmacy.name}
               </label>
             `;
@@ -448,11 +450,11 @@ function initCreateStaffForm() {
       'input[name="pharmacies"]:checked'
     );
 
-    // if (!selectedPharmacy) {
-    //   // ❌ No selection made — show alert
-    //   alert("At-Least 1 Pharmacy must be Added");
-    //   return;
-    // }
+    if (!selectedPharmacy) {
+      // ❌ No selection made — show alert
+      alert("At-Least 1 Pharmacy must be Added");
+      return;
+    }
 
     // ✅ Proceed with submission
     const csrfToken = document.querySelector(
@@ -532,6 +534,57 @@ function initCreateAdminForm() {
       .catch(() => alert("Something went wrong."));
   });
 }
+
+// Inventory-page-javascript
+function initInventoryPage() {
+  const pharmacyDropdown = document.getElementById("pharmacy-dropdown");
+  const locationDropdown = document.getElementById("location-select");
+
+  if (!pharmacyDropdown || !locationDropdown) return;
+
+  // 📦 Hide location dropdown initially
+  locationDropdown.style.display = "none";
+
+  // 🏥 Load pharmacies
+  fetch("/inventory/api/pharmacies/")
+    .then((response) => response.json())
+    .then((data) => {
+      pharmacyDropdown.innerHTML = '<option selected disabled>Select Pharmacy</option>';
+
+      data.forEach((pharmacy) => {
+        const option = document.createElement("option");
+        option.value = pharmacy.id;
+        option.textContent = pharmacy.name; // ✅ Only name shown
+        option.dataset.location = pharmacy.location; // 💾 Store location for later
+        pharmacyDropdown.appendChild(option);
+      });
+    })
+    .catch((error) => {
+      console.error("Error loading pharmacies:", error);
+    });
+
+  // 🚀 On pharmacy select
+  pharmacyDropdown.addEventListener("change", function () {
+    const selectedOption = this.options[this.selectedIndex];
+    const location = selectedOption.dataset.location;
+
+    if (location) {
+      locationDropdown.innerHTML = ""; // 🧹 Clear previous options
+      const option = document.createElement("option");
+      option.textContent = location;
+      option.value = "selected-location"; // optional
+      locationDropdown.appendChild(option);
+
+      // ✅ Show location dropdown
+      locationDropdown.style.display = "block";
+    } else {
+      // ❌ Fallback (shouldn’t happen if data is correct)
+      locationDropdown.style.display = "none";
+    }
+  });
+}
+
+
 
 // ✅ On Page Load
 document.addEventListener("DOMContentLoaded", () => {

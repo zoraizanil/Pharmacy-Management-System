@@ -1,18 +1,42 @@
 <div class="container mt-3">
     <h3 class="mb-3">Inventory</h3>
 
-    <!-- 🔽 Pharmacy Dropdown (Dynamic) -->
-    <select class="form-select form-select-sm w-25 mb-4" aria-label="Select Pharmacy">
-        <option selected>Select a Pharmacy</option>
-        {% for pharmacy in pharmacies %}
-            <option value="{{ pharmacy.id }}">{{ pharmacy.name }} - {{ pharmacy.location }}</option>
-        {% empty %}
-            <option disabled>No pharmacies found</option>
-        {% endfor %}
-    </select>
+    <!-- 🔄 Flex Container for Both Dropdowns -->
+    <div class="d-flex justify-content-center align-items-center gap-3 mb-4">
+
+
+        <select id="pharmacy-dropdown" class="form-select form-select-sm w-25" aria-label="Select Pharmacy">
+            <option selected disabled>Loading Pharmacies...</option>
+        </select>
+
+        <select style="display: none;" id="location-select" class="form-select form-select-sm w-25"
+            aria-label="Select Location">
+            <option selected disabled>Select Location</option>
+        </select>
+    </div>
 
     <!-- Inventory content area -->
     <div id="inventory-content">
-        <p>Inventory items will appear here...</p>
+
     </div>
 </div>
+
+
+
+
+
+
+
+
+
+
+
+<!-- 🔽 Pharmacy Dropdown -->
+<!-- <select class="form-select form-select-sm w-25" aria-label="Select Pharmacy">
+            
+            {% for pharmacy in pharmacies %}
+            <option value="{{ pharmacy.id }}">{{ pharmacy.name }} - {{ pharmacy.location }}</option>
+            {% empty %}
+            <option disabled>No pharmacies found</option>
+            {% endfor %}
+        </select> -->
