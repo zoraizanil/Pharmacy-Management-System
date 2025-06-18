@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'accounts',
     'static',
     'pharmacies',
+    'inventory',
     # 'users',
 ]
 AUTH_USER_MODEL = 'accounts.CustomUser'
@@ -81,12 +82,28 @@ STATICFILES_DIRS = [
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'mssql',
+#         'NAME': 'phm2',
+#         'USER': 'umair',
+#         'PASSWORD': 'sa-1234',
+#         'HOST': 'localhost',
+#         'PORT': '1433',  # 1433 is the default SQL Server port
+#         'OPTIONS': {
+#             'driver': 'ODBC Driver 18 for SQL Server',
+#             'extra_params': 'Encrypt=yes;TrustServerCertificate=yes;',
+#         },
+#     }
+# }
+
+
 DATABASES = {
     'default': {
         'ENGINE': 'mssql',
-        'NAME': 'phm2',
-        'USER': 'umair',
-        'PASSWORD': 'sa-1234',
+        'NAME': 'sa202513',
+        'USER': 'sa',
+        'PASSWORD': '1234-sa',
         'HOST': 'localhost',
         'PORT': '1433',  # 1433 is the default SQL Server port
         'OPTIONS': {
@@ -95,7 +112,6 @@ DATABASES = {
         },
     }
 }
-
 
 
 

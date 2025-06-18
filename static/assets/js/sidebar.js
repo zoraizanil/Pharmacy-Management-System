@@ -95,9 +95,8 @@ function initPharmacyDropdowns() {
             const item = document.createElement("li");
             item.innerHTML = `
               <label>
-                <input type="${config.inputType}" name="${
-              config.inputType === "radio" ? "assigned_pharmacy" : "pharmacies"
-            }" value="${pharmacy.id}" id="pharmacy-${pharmacy.id}">
+                <input type="${config.inputType}" name="${config.inputType === "radio" ? "assigned_pharmacy" : "pharmacies"
+              }" value="${pharmacy.id}" id="pharmacy-${pharmacy.id}">
                 ${pharmacy.name}
               </label>
             `;
@@ -449,11 +448,11 @@ function initCreateStaffForm() {
       'input[name="pharmacies"]:checked'
     );
 
-    if (!selectedPharmacy) {
-      // ❌ No selection made — show alert
-      alert("At-Least 1 Pharmacy must be Added");
-      return;
-    }
+    // if (!selectedPharmacy) {
+    //   // ❌ No selection made — show alert
+    //   alert("At-Least 1 Pharmacy must be Added");
+    //   return;
+    // }
 
     // ✅ Proceed with submission
     const csrfToken = document.querySelector(

@@ -75,15 +75,6 @@ if (loginBox) {
   }
   mobileNavToggleBtn.addEventListener('click', mobileNavToogle);
 
-  /**
-   * Preloader
-   */
-  const preloader = document.querySelector('#preloader');
-  if (preloader) {
-    window.addEventListener('load', () => {
-      preloader.remove();
-    });
-  }
 
   /**
    * Scroll top button
@@ -131,3 +122,23 @@ if (loginBox) {
   document.addEventListener('scroll', navmenuScrollspy);
 
 })();
+function hidePreloader() {
+  setTimeout(() => {
+    document.querySelector('.left-half').style.animation = 'breakLeft 1s forwards';
+    document.querySelector('.right-half').style.animation = 'breakRight 1s forwards';
+
+    // Animate falling tablets
+    const tablets = document.querySelectorAll('.tablet');
+    tablets.forEach((tab, i) => {
+      setTimeout(() => {
+        tab.style.animation = `fall 1s forwards`;
+      }, i * 150); // staggered fall
+    });
+  }, 2000);
+
+  setTimeout(() => {
+    document.getElementById('preloader').style.display = 'none';
+    document.getElementById('main-content').style.display = 'block';
+    document.body.style.overflow = 'auto';
+  }, 4000); // extended to let tablets finish
+}

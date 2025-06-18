@@ -60,17 +60,14 @@ def pharmacy_list_api(request):
         pharmacies = Pharmacy.objects.all()
     elif user.role == 'MANAGER':
         pharmacies = user.managed_pharmacies.all()
-    elif user.role == 'STAFF':
-        # Staff sirf un pharmacies ko dekhe jahan wo manager ke through linked hai
-        pharmacies = Pharmacy.objects.filter(managers=user)
     else:
         pharmacies = Pharmacy.objects.none()
 
-    data = [
-        {"id": pharmacy.id, "name": pharmacy.name}
-        for pharmacy in pharmacies
-    ]
-    return JsonResponse(data, safe=False)
+    # data = [
+    #     {"id": pharmacy.id, "name": pharmacy.name}
+    #     for pharmacy in pharmacies
+    # ]
+    return JsonResponse(pharmacies, safe=False)
 
 
 

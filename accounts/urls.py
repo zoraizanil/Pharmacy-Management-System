@@ -12,9 +12,4 @@ urlpatterns = [
     path('create-admin/', views.create_admin_view, name='create_admin'),
     path('create-manager/', views.create_manager_view, name='create_manager'),
     path('create-staff/', views.create_staff_view, name='create_staff'),
-
-    # Role Dashboards
-    # path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
-    # path('manager-dashboard/', views.manager_dashboard, name='manager_dashboard'),
-    path('sale-dashboard/', views.sale_dashboard, name='sale_dashboard'),
 ]
