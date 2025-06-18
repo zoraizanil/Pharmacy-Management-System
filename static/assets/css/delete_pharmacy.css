@@ -1,0 +1,58 @@
+.delete-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.set-table {
+    height: calc(100vh - 25vh);
+}
+
+thead tr {
+    background-color: #106eea;
+    color: white;
+    height: 35px;
+    font-size: 18px;
+}
+
+tbody tr:nth-child(even) {
+    background-color: #cddff7;
+}
+
+th,
+td {
+    border: 1px solid black;
+    padding: 0px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+tbody tr {
+    border: 1px solid black;
+    text-align: center;
+    vertical-align: middle;
+    height: 30px;
+    font-size: 14px;
+}
+
+button {
+    padding: 5px 10px;
+    margin: 2px;
+}
+
+
+.btn1 {
+    width: 100%;
+    cursor: pointer;
+    color: black;
+    border: 1px solid #106eea;
+    background-color: #689fe8;
+    /* padding: 0px; */
+    color: #fff;
+    font-weight: 500;
+}

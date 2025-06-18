@@ -1,0 +1,16 @@
+<div class="Pharmacy-form">
+    <form id="addPharmacyForm">
+        {% csrf_token %}
+        <h2 class="text-center">Add Pharmacy</h2>
+
+        <div class="form-group">
+            <input type="text" id="pharmacyName" name="name" placeholder="Pharmacy Name" required />
+        </div>
+        <div class="form-group">
+            <input type="text" id="pharmacyAddress" name="location" placeholder="Enter Address" required />
+        </div>
+        <button class="submit-btn" type="button" id="submitBtn">CREATE</button>
+
+    </form>
+</div>
+

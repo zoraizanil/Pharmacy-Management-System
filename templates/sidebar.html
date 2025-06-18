@@ -1,0 +1,119 @@
+<!-- Hero Section -->
+<div id="main-container">
+    <!-- Sidebar -->
+    <button id="sidebarToggle" class="toggle-btn" onclick="toggleSidebar()">
+        <i class="bi bi-list"></i>
+    </button>
+    <!-- Sidebar Wrapper -->
+    <div id="sidebar">
+        <ul class="nav-list nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link active d-flex align-items-center"
+                    onclick="loadPage('/home-page/'); setActiveNavLink(this);">
+                    <i class="bi bi-house"></i>
+                    <span class="nav-text">Home</span>
+                </a>
+            </li>
+            {% if request.user.is_superuser %}
+            <!-- Add Pharmacy -->
+            <li class="nav-item">
+                <a class="nav-link d-flex align-items-center"
+                    onclick="loadPage('/pharmacy/add-pharmacy/'); setActiveNavLink(this);">
+                    <i class="bi bi-building-add"></i>
+                    <span class="nav-text">Add Pharmacy</span>
+                </a>
+            </li>
+
+            <!-- DELETE Pharmacy -->
+            <li class="nav-item">
+                <a class="nav-link d-flex align-items-center"
+                    onclick="loadPage('/pharmacy/delete/'); setActiveNavLink(this);">
+                    <i class="bi bi-trash"></i>
+                    <span class="nav-text">Delete Pharmacy</span>
+                </a>
+            </li>
+            {% endif %}
+
+            {% if request.user.is_superuser or request.user.role == 'ADMIN' or request.user.role == 'MANAGER' %}
+            <!-- Create User -->
+            <li class="nav-item">
+                <a class="nav-link d-flex align-items-center"
+                    onclick="toggleSubmenu('contact-submenu', this); setActiveNavLink(this);">
+                    <i class="bi bi-person-plus"></i>
+                    <span class="nav-text">Create User's</span>
+                    <i class="bi bi-caret-right-fill ms-auto text-black nav-text"></i>
+                </a>
+                {% endif %}
+
+                <ul id="contact-submenu" class="nav flex-column ms-3 d-none">
+                    {% if request.user.is_superuser or request.user.role == 'ADMIN' %}
+                    <li class="nav-item">
+                        <a class="nav-link" onclick="loadPage('create-manager/'); setActiveNavLink(this);">Manager</a>
+                    </li>
+                    {% endif %}
+                    {% if request.user.is_superuser or request.user.role == 'ADMIN' %}
+                    <li class="nav-item">
+                        <a class="nav-link" onclick="loadPage('create-admin/'); setActiveNavLink(this);">Admin</a>
+                    </li>
+                    {% endif %}
+                    {% if request.user.is_superuser or request.user.role == 'ADMIN' or request.user.role == 'MANAGER' %}
+                    <li class="nav-item">
+                        <a class="nav-link" onclick="loadPage('create-staff/'); setActiveNavLink(this);">Staff</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </li>
+
+            <!-- Inventory -->
+            <li class="nav-item">
+                <a class="nav-link d-flex align-items-center"
+                    onclick="loadPage('/pharmacy/inventory/'); setActiveNavLink(this);">
+                    <i class="bi bi-box-seam"></i>
+                    <span class="nav-text">Inventory</span>
+                </a>
+            </li>
+
+            <!-- Sales -->
+            <li class="nav-item">
+                <a class="nav-link d-flex align-items-center"
+                    onclick="loadPage('/pharmacy/sales/'); setActiveNavLink(this);">
+                    <i class="bi bi-cart-plus"></i>
+                    <span class="nav-text">Sales</span>
+                </a>
+            </li>
+
+            <!-- See Manager -->
+            <li class="nav-item">
+                <a class="nav-link d-flex align-items-center"
+                    onclick="loadPage('/pharmacy/see_manager/'); setActiveNavLink(this);">
+                    <i class="bi bi-person-fill-gear"></i>
+                    <span class="nav-text">See-Managers</span>
+                </a>
+            </li>
+
+            <!-- See Staff -->
+            <li class="nav-item">
+                <a class="nav-link d-flex align-items-center"
+                    onclick="loadPage('/pharmacy/See_staff/'); setActiveNavLink(this);">
+                    <i class="bi bi-person-fill"></i>
+                    <span class="nav-text">See-Staff</span>
+                </a>
+            </li>
+        </ul>
+        <hr>
+
+
+        <!-- Logout Button Fixed to Bottom -->
+        <button class="logout-btn" onclick="loadPage('logout/')">
+            <i class="bi bi-box-arrow-left"></i>
+            <span class="nav-text">LogOut</span>
+        </button>
+
+    </div>
+
+
+    <!-- Content Area -->
+    <div id="content-area">
+    </div>
+</div>
+<!-- End Hero Section -->

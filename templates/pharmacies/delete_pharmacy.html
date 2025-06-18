@@ -1,0 +1,38 @@
+
+<div class="delete-header">
+    <h2 class="text-center">Delete Pharmacy</h2>
+    <form class="delete-form" method="POST" id="deletePharmacyForm">
+        {% csrf_token %}
+        <input type="hidden" name="pharmacy_id" id="pharmacy_id">
+        <button class="btn1" type="submit" id="deleteButton" disabled>Delete</button>
+    </form>
+</div>
+
+<div class="set-table">
+    <table border="1" cellpadding="8" cellspacing="0">
+        <thead>
+            <tr>
+                <th style="width: 10%;">
+                    <label>
+                        <input type="checkbox" id="checkAll" onclick="onCheckAllClick()" />
+                        Select All
+                    </label>
+                </th>
+                <th style="width: 30%;">Pharmacy Name</th>
+                <th style="width: 60%;">Address</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pharmacy in pharmacies %}
+            <tr id="pharmacy-row-{{ pharmacy.id }}" onclick="onRowClick({{ pharmacy.id }}, event)">
+                <td>
+                    <input type="checkbox" class="pharmacy-checkbox" value="{{ pharmacy.id }}"
+                        onclick="onCheckboxClick({{ pharmacy.id }}, event)" />
+                </td>
+                <td>{{ pharmacy.name }}</td>
+                <td>{{ pharmacy.location }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

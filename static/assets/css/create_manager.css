@@ -1,0 +1,48 @@
+.Pharmacy-form {
+    padding: 30px;
+}
+
+.btn.dropdown-toggle {
+    border: 1px solid #ccc;
+    width: 80%;
+    display: block;
+    margin-inline: auto;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.btn.dropdown-toggle:hover {
+    border: 1px solid #ccc;
+    color: #6c757d;
+}
+
+#manager-Dropdown {
+    max-height: 60vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* ===== Password Field Eye Icon ===== */
+.toggle-password {
+    display: none;
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    cursor: pointer;
+}
+
+/* ===== Error Message Styling ===== */
+#password-error {
+    color: red;
+    display: none;
+    position: absolute;
+    left: 0;
+    font-size: 0.875rem;
+}
