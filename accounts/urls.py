@@ -12,4 +12,5 @@ urlpatterns = [
     path('create-admin/', views.create_admin_view, name='create_admin'),
     path('create-manager/', views.create_manager_view, name='create_manager'),
     path('create-staff/', views.create_staff_view, name='create_staff'),
+    path('staff-dashboard/', views.staff_dashboard, name='staff_dashboard'),
 ]

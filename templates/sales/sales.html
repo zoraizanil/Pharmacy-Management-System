@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/assets/css/main.css">
+</head>
+<body>
+    <style>
+        .month-picker {
+            display: none;
+            position: absolute;
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            z-index: 1050;
+            width: 250px;
+        }
+        .month-picker-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .month-picker-year {
+            font-weight: bold;
+        }
+        .month-picker-nav {
+            cursor: pointer;
+            padding: 0 10px;
+        }
+        .month-picker-months {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 5px;
+        }
+        .month-picker-month {
+            text-align: center;
+            padding: 8px 5px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        .month-picker-month:hover {
+            background-color: #f0f0f0;
+        }
+        .month-picker-month.selected {
+            background-color: #0d6efd;
+            color: white;
+        }
+    </style>
+    <div class="container mt-3">
+        <h3 class="mb-3 text-center">Sales Report</h3>
+        
+        <div class="card">
+            <div class="card-header">
+                <div class="row align-items-end">
+                    <div class="col-md-4">
+                        <label for="pharmacy-dropdown" class="form-label">Select Pharmacy</label>
+                        <select id="pharmacy-dropdown" class="form-select form-select-sm">
+                            <option value="" selected>All Pharmacies</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="month-picker-input" class="form-label">Select Period</label>
+                        <input type="text" id="month-picker-input" class="form-control form-control-sm" placeholder="Select Month and Year" readonly>
+                        <div id="month-picker" class="month-picker">
+                            <div class="month-picker-header">
+                                <span class="month-picker-nav" id="prev-year">&lt;</span>
+                                <span class="month-picker-year" id="picker-year">2024</span>
+                                <span class="month-picker-nav" id="next-year">&gt;</span>
+                            </div>
+                            <div class="month-picker-months" id="month-container">
+                                <!-- Months will be injected by JS -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="location-dropdown" class="form-label">Location</label>
+                        <select id="location-dropdown" class="form-select form-select-sm" disabled>
+                            <option value="" selected>Select a pharmacy first</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button id="refresh-btn" class="btn btn-primary btn-sm d-block w-100">Refresh Data</button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive custom-table-wrapper">
+                    <table class="inventory-table">
+                        <thead id="sales-table-head"></thead>
+                        <tbody id="sales-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        (function() {
+            // State
+            let pharmacies = [];
+            let currentData = [];
+            let selectedYear = new Date().getFullYear();
+            let selectedMonth = '';
+
+            // Elements
+            const pharmacyDropdown = document.getElementById('pharmacy-dropdown');
+            const locationDropdown = document.getElementById('location-dropdown');
+            const refreshButton = document.getElementById('refresh-btn');
+            const monthPickerInput = document.getElementById('month-picker-input');
+            const monthPicker = document.getElementById('month-picker');
+            const pickerYear = document.getElementById('picker-year');
+            const prevYearBtn = document.getElementById('prev-year');
+            const nextYearBtn = document.getElementById('next-year');
+            const monthContainer = document.getElementById('month-container');
+
+            const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            const monthFullNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+            // Initialize
+            loadPharmacies();
+            loadSalesData();
+            setupMonthPicker();
+
+            // Event Listeners
+            pharmacyDropdown.addEventListener('change', () => {
+                updateLocationFromPharmacy();
+                loadSalesData();
+            });
+            refreshButton.addEventListener('click', loadSalesData);
+            monthPickerInput.addEventListener('click', () => {
+                monthPicker.style.display = 'block';
+            });
+            document.addEventListener('click', (e) => {
+                if (!monthPicker.contains(e.target) && e.target !== monthPickerInput) {
+                    monthPicker.style.display = 'none';
+                }
+            });
+            prevYearBtn.addEventListener('click', () => changeYear(-1));
+            nextYearBtn.addEventListener('click', () => changeYear(1));
+
+            // Functions
+            function setupMonthPicker() {
+                pickerYear.textContent = selectedYear;
+                monthContainer.innerHTML = '';
+                monthNames.forEach((month, index) => {
+                    const monthEl = document.createElement('div');
+                    monthEl.className = 'month-picker-month';
+                    monthEl.textContent = month;
+                    monthEl.dataset.monthIndex = index;
+                    if (monthFullNames[index] === selectedMonth) {
+                        monthEl.classList.add('selected');
+                    }
+                    monthEl.addEventListener('click', () => selectMonth(index));
+                    monthContainer.appendChild(monthEl);
+                });
+            }
+
+            function changeYear(offset) {
+                selectedYear += offset;
+                setupMonthPicker();
+            }
+
+            function selectMonth(index) {
+                selectedMonth = monthFullNames[index];
+                monthPickerInput.value = `${selectedMonth} ${selectedYear}`;
+                monthPicker.style.display = 'none';
+
+                // Visually update the selected month
+                document.querySelectorAll('.month-picker-month').forEach(m => m.classList.remove('selected'));
+                const currentMonthEl = monthContainer.querySelector(`[data-month-index='${index}']`);
+                if(currentMonthEl) {
+                    currentMonthEl.classList.add('selected');
+                }
+
+                // Explicitly call loadSalesData to refresh the data
+                loadSalesData();
+            }
+
+            async function loadPharmacies() {
+                try {
+                    const response = await fetch('/pharmacy/api/pharmacies/');
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        pharmacies = result.pharmacies;
+                        pharmacyDropdown.innerHTML = '<option value="" selected>All Pharmacies</option>';
+                        pharmacies.forEach(p => {
+                            const option = new Option(p.name, p.id);
+                            option.dataset.location = p.location;
+                            pharmacyDropdown.add(option);
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error loading pharmacies:', error);
+                }
+            }
+
+            function updateLocationFromPharmacy() {
+                const selectedOption = pharmacyDropdown.options[pharmacyDropdown.selectedIndex];
+                if (selectedOption && selectedOption.value) {
+                    const location = selectedOption.dataset.location;
+                    locationDropdown.innerHTML = `<option value="${location}" selected>${location}</option>`;
+                    locationDropdown.disabled = true;
+                } else {
+                    locationDropdown.innerHTML = '<option value="" selected>Select a pharmacy first</option>';
+                    locationDropdown.disabled = true;
+                }
+            }
+            
+            async function loadSalesData() {
+                const pharmacyId = pharmacyDropdown.value;
+                
+                const params = new URLSearchParams();
+                if (pharmacyId) params.append('pharmacy_id', pharmacyId);
+                if (selectedYear) params.append('year', selectedYear);
+                if (selectedMonth) params.append('period', selectedMonth);
+                
+                const tableHead = document.getElementById('sales-table-head');
+                const tableBody = document.getElementById('sales-table-body');
+                tableBody.innerHTML = '<tr><td colspan="6" class="text-center">Loading...</td></tr>';
+                tableHead.innerHTML = '';
+
+                try {
+                    const response = await fetch(`/sales/api/sales/?${params.toString()}`);
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        currentData = result.data;
+                        displaySalesData(result.data, result.columns);
+                    } else {
+                        displayError(result.error || 'Failed to load data.');
+                    }
+                } catch (error) {
+                    console.error('Error loading sales data:', error);
+                    displayError('An error occurred while fetching data.');
+                }
+            }
+
+            function displaySalesData(data, columns) {
+                const tableHead = document.getElementById('sales-table-head');
+                const tableBody = document.getElementById('sales-table-body');
+
+                if (!columns || columns.length === 0 || !data || data.length === 0) {
+                    tableHead.innerHTML = '<tr><th class="text-center">No Data</th></tr>';
+                    tableBody.innerHTML = '<tr><td class="text-center">No sales data available for the selected criteria.</td></tr>';
+                    return;
+                }
+                // Filter out the 'id' column
+                const filteredColumns = columns.filter(c => c !== 'id');
+                tableHead.innerHTML = `<tr>${filteredColumns.map(c => `<th>${c.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</th>`).join('')}</tr>`;
+
+                let bodyHtml = '';
+                data.forEach(row => {
+                    bodyHtml += '<tr>';
+                    filteredColumns.forEach(col => {
+                        const value = row[col] === null || row[col] === undefined ? '' : row[col];
+                        let cellContent = value;
+                        if (row[filteredColumns[0]] === 'TOTAL' && col === 'sale_price') {
+                             cellContent = `<strong>${typeof value === 'number' ? '$' + value.toFixed(2) : value}</strong>`;
+                        } else if (col === 'sale_price' && typeof value === 'number') {
+                            cellContent = `$${value.toFixed(2)}`;
+                        }
+                        bodyHtml += `<td>${cellContent}</td>`;
+                    });
+                    bodyHtml += '</tr>';
+                });
+                tableBody.innerHTML = bodyHtml;
+            }
+
+            function displayError(message) {
+                const tableHead = document.getElementById('sales-table-head');
+                const tableBody = document.getElementById('sales-table-body');
+                tableHead.innerHTML = '<tr><th class="text-center text-danger">Error</th></tr>';
+                tableBody.innerHTML = `<tr><td class="text-center text-danger">${message}</td></tr>`;
+            }
+        })();
+    </script>
+</body>
+</html> 

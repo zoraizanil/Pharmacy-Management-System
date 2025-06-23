@@ -1,0 +1,140 @@
+.add-inventory-form {
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-start;
+    flex-wrap: nowrap;
+}
+
+.form-group-wrapper {
+    width: 45%;
+    margin-top: 20px;
+}
+
+.add-inventory-form .form-select {
+    box-shadow: none;
+    border-color: #ccc;
+    width: 100%;
+}
+
+.form-label {
+    font-weight: bold;
+    font-size: 18px;
+}
+
+#location-select.hidden {
+    visibility: hidden;
+}
+
+.upload-file {
+    margin-block: 50px;
+}
+
+.input-group {
+    display: flex;
+    align-items: stretch;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    height: 45px;
+}
+
+.input-group .form-control {
+    background-color: #fff;
+    padding: 0 12px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    box-shadow: none;
+}
+
+
+.input-group .form-control:focus {
+    border-color: #CED4DA;
+}
+
+.input-group .input-group-text {
+    white-space: nowrap;
+    border-radius: 0.25rem 0 0 0.25rem;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+}
+
+.input-group .upload-file-btn {
+    background-color: #106EEA;
+    color: white;
+    border-radius: 0 0.25rem 0.25rem 0;
+    padding: 0 16px;
+    margin: 0px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: none;
+}
+
+
+.fileBtn {
+    background-color: #106EEA;
+    color: white;
+    border-radius: 0 0.375rem 0.375rem 0;
+    box-shadow: none;
+}
+
+.fileBtn:hover {
+    color: white;
+}
+
+
+
+
+/* ============================================================== */
+
+/* ===================  SEE-INVENTORY  ========================= */
+
+/* =============================================================== */
+
+.custom-table-wrapper {
+    max-height: 46vh;
+    overflow-y: auto;
+    margin-top: 20px;
+    border: 1px solid #ddd;
+}
+
+/* Optional: make header sticky */
+.custom-table-wrapper thead th {
+    position: sticky;
+    top: 0;
+    background-color: #106eea;
+    color: white;
+    z-index: 2;
+}
+
+.set-table {
+    height: calc(100vh - 25vh);
+}
+
+.inventory-table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.inventory-table thead tr {
+    background-color: #106eea;
+    color: white;
+    height: 35px;
+    font-size: 18px;
+}
+
+.inventory-table tbody tr:nth-child(even) {
+    background-color: #cddff7;
+}
+
+.inventory-table th,
+.inventory-table td {
+    border: 1px solid black;
+    padding: 0px;
+    text-align: center;
+    vertical-align: middle;
+    height: 30px;
+    font-size: 14px;
+}

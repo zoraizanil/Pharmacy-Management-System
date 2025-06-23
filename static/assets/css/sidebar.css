@@ -64,7 +64,8 @@ body {
 }
 
 #pharmacies-submenu .nav-item ul .nav-link,
-#contact-submenu .nav-link {
+#contact-submenu .nav-link,
+#inventory-submenu .nav-link {
     padding-left: 15px !important;
 }
 

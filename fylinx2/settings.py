@@ -36,7 +36,8 @@ INSTALLED_APPS = [
     'static',
     'pharmacies',
     'inventory',
-    # 'users',
+    'sales',
+    'roles',
 ]
 AUTH_USER_MODEL = 'accounts.CustomUser'
 

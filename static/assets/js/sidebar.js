@@ -33,13 +33,32 @@ function setActiveNavLink(clickedLink) {
 
 // ✅ Load Page via AJAX
 function loadPage(url) {
+  console.log('🔍 THIS IS THE UPDATED LOADPAGE FUNCTION 🔍');
+  console.log('=== loadPage called with URL:', url, '===');
   fetch(url)
     .then((response) => {
       if (!response.ok) throw new Error("Page not found");
       return response.text();
     })
     .then((html) => {
-      document.getElementById("content-area").innerHTML = html;
+      console.log('HTML loaded, injecting into content-area');
+      const contentArea = document.getElementById("content-area");
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      
+      // Replace content
+      contentArea.innerHTML = doc.body.innerHTML;
+
+      // Execute scripts
+      Array.from(doc.body.querySelectorAll('script')).forEach(oldScript => {
+        const newScript = document.createElement('script');
+        Array.from(oldScript.attributes).forEach(attr => {
+            newScript.setAttribute(attr.name, attr.value);
+        });
+        newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+        contentArea.appendChild(newScript);
+      });
+
       initPharmacyDropdowns();
       initPharmacyForm();
       initDeleteForms();
@@ -47,208 +66,27 @@ function loadPage(url) {
       initCreateStaffForm();
       initCreateAdminForm();
       initInventoryPage();
+      console.log('Checking URL for special pages...');
+      if (url.includes('see-inventory')) {
+        console.log('Detected see-inventory page, calling initSeeInventoryPage');
+        initSeeInventoryPage();
+      }
+      if (url.includes('managers')) {
+        console.log('Detected managers page, calling fetchManagersData');
+        fetchManagersData();
+      }
+      if (url.includes('staff')) {
+        console.log('Detected staff page, calling fetchStaffData');
+        fetchStaffData();
+      }
+      console.log('=== loadPage completed ===');
     })
-    .catch(() => {
+    .catch((error) => {
+      console.error('loadPage error:', error);
       document.getElementById("content-area").innerHTML =
         "<h3>Page not found.</h3>";
     });
 }
-
-// ✅ Dropdown Logic
-function initPharmacyDropdowns() {
-  const dropdownConfigs = [
-    {
-      buttonSelector: "#manager-form .dropdown-toggle",
-      menuSelector: "#manager-Dropdown",
-      inputType: "checkbox",
-      placeholder: "Select Pharmacy",
-    },
-    {
-      buttonSelector: "#staff-form .dropdown-toggle",
-      menuSelector: "#staff-Dropdown",
-      inputType: "radio",
-      placeholder: "Select Pharmacy",
-    },
-  ];
-
-  dropdownConfigs.forEach((config) => {
-    const dropdownButton = document.querySelector(config.buttonSelector);
-    const dropdownMenu = document.querySelector(config.menuSelector);
-
-    if (!dropdownButton || !dropdownMenu) return;
-
-    let pharmaciesLoaded = false;
-
-    dropdownButton.addEventListener("click", () => {
-      if (pharmaciesLoaded) return;
-
-      fetch("/pharmacy/api/pharmacies/")
-        .then((response) => response.json())
-        .then((data) => {
-          dropdownMenu.innerHTML = "";
-
-          if (!data.length) {
-            dropdownMenu.innerHTML = "<li>No pharmacies found</li>";
-            return;
-          }
-
-          data.forEach((pharmacy) => {
-            const item = document.createElement("li");
-            item.innerHTML = `
-              <label>
-                <input type="${config.inputType}" name="${
-              config.inputType === "radio" ? "assigned_pharmacy" : "pharmacies"
-            }" value="${pharmacy.id}" id="pharmacy-${pharmacy.id}">
-                ${pharmacy.name}
-              </label>
-            `;
-            dropdownMenu.appendChild(item);
-          });
-
-          dropdownMenu.addEventListener("click", (e) => e.stopPropagation());
-
-          dropdownMenu.addEventListener("change", () => {
-            let selectedLabels = [];
-
-            if (config.inputType === "checkbox") {
-              selectedLabels = Array.from(
-                dropdownMenu.querySelectorAll("input[type='checkbox']:checked")
-              ).map((input) => input.parentElement.textContent.trim());
-            } else {
-              const selectedRadio = dropdownMenu.querySelector(
-                "input[type='radio']:checked"
-              );
-              selectedLabels = selectedRadio
-                ? [selectedRadio.parentElement.textContent.trim()]
-                : [];
-            }
-
-            dropdownButton.textContent = selectedLabels.length
-              ? selectedLabels.join(", ")
-              : config.placeholder;
-          });
-
-          pharmaciesLoaded = true;
-        })
-        .catch((error) => {
-          console.error("Error fetching pharmacies:", error);
-        });
-    });
-  });
-}
-
-// eye button in password field
-function togglePassword(inputId, icon) {
-  const input = document.getElementById(inputId);
-  if (input.type === "password") {
-    input.type = "text";
-    icon.classList.remove("bi-eye-slash");
-    icon.classList.add("bi-eye");
-  } else {
-    input.type = "password";
-    icon.classList.remove("bi-eye");
-    icon.classList.add("bi-eye-slash");
-  }
-}
-function handleInput(input, iconId) {
-  const icon = document.getElementById(iconId);
-  icon.style.display = input.value.length > 0 ? "block" : "none";
-}
-document.addEventListener("DOMContentLoaded", function () {
-  document.addEventListener("click", function (e) {
-    const password1Elem = document.getElementById("password1");
-    const password2Elem = document.getElementById("password2");
-    const errorMsg = document.getElementById("password-error");
-
-    // Null check to avoid errors
-    if (!password1Elem || !password2Elem || !errorMsg) return;
-
-    const password1 = password1Elem.value;
-    const password2 = password2Elem.value;
-
-    if (password1 && password2) {
-      if (password1 !== password2) {
-        errorMsg.style.display = "block";
-      } else {
-        errorMsg.style.display = "none";
-      }
-    } else {
-      errorMsg.style.display = "none";
-    }
-  });
-});
-
-// ✅ Load Pharmacies in Sidebar
-// function loadPharmacies() {
-//   const submenu = document.getElementById("pharmacies-submenu");
-//   submenu.innerHTML =
-//     "<li class='nav-item'><span class='nav-link'>Loading...</span></li>";
-
-//   fetch("/pharmacy/api/pharmacies/")
-//     .then((response) => response.json())
-//     .then((data) => {
-//       if (Array.isArray(data) && data.length > 0) {
-//         submenu.innerHTML = "";
-//         data.forEach((pharmacy) => {
-//           const li = document.createElement("li");
-//           li.className = "nav-item";
-
-//           li.innerHTML = `
-//             <a class="nav-link d-flex align-items-center" onclick="togglePharmacySubmenu(${pharmacy.id}, this); setActiveNavLink(this);">
-//               <i class="bi bi-shop"></i>
-//               <span class="nav-text">${pharmacy.name}</span>
-//               <i class="bi bi-caret-right-fill ms-auto text-black nav-text"></i>
-//             </a>
-//             <ul id="submenu-${pharmacy.id}" class="nav flex-column ms-3 d-none"></ul>
-//           `;
-
-//           submenu.appendChild(li);
-//         });
-//       } else {
-//         submenu.innerHTML =
-//           "<li class='nav-item'><span class='nav-link'>No pharmacies found</span></li>";
-//       }
-//     })
-//     .catch(() => {
-//       submenu.innerHTML =
-//         "<li class='nav-item'><span class='nav-link text-danger'>Error loading data</span></li>";
-//     });
-// }
-
-// ✅ Toggle Pharmacy Submenu with Rotation and Content
-// function togglePharmacySubmenu(pharmacyId, clickedElement) {
-//   const submenu = document.getElementById(`submenu-${pharmacyId}`);
-
-//   // Close other submenus
-//   document.querySelectorAll("ul[id^='submenu-']").forEach((el) => {
-//     if (el.id !== `submenu-${pharmacyId}`) {
-//       el.classList.add("d-none");
-//       const prev = el.previousElementSibling;
-//       if (prev) {
-//         const otherIcon = prev.querySelector("i.bi-caret-right-fill");
-//         if (otherIcon) otherIcon.classList.remove("rotate-down");
-//       }
-//     }
-//   });
-
-//   // Toggle current submenu
-//   submenu.classList.toggle("d-none");
-
-//   // Load submenu items once
-//   if (submenu.children.length === 0) {
-//     submenu.innerHTML = `
-//       <li class="nav-item"><a class="nav-link" onclick="loadPage('pharmacy/${pharmacyId}/inventory')">Inventory</a></li>
-//       <li class="nav-item"><a class="nav-link" onclick="loadPage('pharmacy/${pharmacyId}/sales')">Sales</a></li>
-//       <li class="nav-item"><a class="nav-link" onclick="loadPage('pharmacy/${pharmacyId}/manager')">See Manager</a></li>
-//     `;
-//   }
-
-//   // Handle icon rotation
-//   const icon = clickedElement.querySelector("i.bi-caret-right-fill");
-//   if (icon) {
-//     icon.classList.toggle("rotate-down", !submenu.classList.contains("d-none"));
-//   }
-// }
 
 // ✅ Add-Pharmacy-Form-Submission
 function initPharmacyForm() {
@@ -307,8 +145,16 @@ function initDeleteForms() {
         .then((res) => res.json())
         .then((data) => {
           if (data.success) {
-            const row = document.getElementById(`pharmacy-row-${pharmacyId}`);
-            if (row) row.remove();
+            const ids = pharmacyId.split(",").map((id) => id.trim());
+            ids.forEach((id) => {
+              const row = document.getElementById(`pharmacy-row-${id}`);
+              if (row) row.remove();
+              selectedPharmacyIds.delete(parseInt(id));
+            });
+
+            document.getElementById("pharmacy_id").value = "";
+            document.getElementById("deleteButton").disabled = true;
+
             alert("Pharmacy deleted successfully.");
           } else {
             alert("Failed to delete: " + data.error);
@@ -320,7 +166,8 @@ function initDeleteForms() {
     });
   });
 }
-// select pharmacies in delete-pharmacy table.%
+
+// select pharmacies in delete-pharmacy table
 let selectedPharmacyIds = new Set();
 function selectPharmacy(id, forceSelect = null) {
   const row = document.getElementById("pharmacy-row-" + id);
@@ -331,7 +178,6 @@ function selectPharmacy(id, forceSelect = null) {
   if (shouldSelect) {
     selectedPharmacyIds.add(id);
     checkbox.checked = true;
-    // row.style.backgroundColor = "#d1e7dd"; // selected color
   } else {
     selectedPharmacyIds.delete(id);
     checkbox.checked = false;
@@ -348,15 +194,17 @@ function selectPharmacy(id, forceSelect = null) {
   const checkAll = document.getElementById("checkAll");
   if (checkAll) checkAll.checked = selected === all;
 }
+
 function onRowClick(id, event) {
-  // Prevent double toggle when clicking on checkbox
   if (event.target.tagName.toLowerCase() === "input") return;
   selectPharmacy(id);
 }
+
 function onCheckboxClick(id, event) {
   event.stopPropagation();
   selectPharmacy(id);
 }
+
 function onCheckAllClick() {
   const checkAll = document.getElementById("checkAll");
   const isChecked = checkAll.checked;
@@ -368,16 +216,129 @@ function onCheckAllClick() {
   });
 }
 
-// ✅ Allow checkbox clicks to toggle selection
-document.addEventListener("DOMContentLoaded", function () {
-  initDeleteForms();
+// ✅ Dropdown Logic
+function initPharmacyDropdowns() {
+  const dropdownConfigs = [
+    {
+      buttonSelector: "#manager-form .dropdown-toggle",
+      menuSelector: "#manager-Dropdown",
+      inputType: "checkbox",
+      placeholder: "Select Pharmacy",
+    },
+    {
+      buttonSelector: "#staff-form .dropdown-toggle",
+      menuSelector: "#staff-Dropdown",
+      inputType: "radio",
+      placeholder: "Select Pharmacy",
+    },
+  ];
 
-  document.querySelectorAll(".pharmacy-checkbox").forEach((checkbox) => {
-    checkbox.addEventListener("click", function (e) {
-      e.stopPropagation(); // Prevent row click triggering twice
-      const id = parseInt(this.value);
-      selectPharmacy(id);
+  dropdownConfigs.forEach((config) => {
+    const dropdownButton = document.querySelector(config.buttonSelector);
+    const dropdownMenu = document.querySelector(config.menuSelector);
+
+    if (!dropdownButton || !dropdownMenu) return;
+
+    let pharmaciesLoaded = false;
+
+    dropdownButton.addEventListener("click", () => {
+      if (pharmaciesLoaded) return;
+
+      fetch("/pharmacy/api/pharmacies/")
+        .then((response) => response.json())
+        .then((result) => {
+          dropdownMenu.innerHTML = "";
+
+          if (!result.success || !result.pharmacies || result.pharmacies.length === 0) {
+            dropdownMenu.innerHTML = "<li>No pharmacies found</li>";
+            return;
+          }
+
+          result.pharmacies.forEach((pharmacy) => {
+            const item = document.createElement("li");
+            item.innerHTML = `
+              <label>
+                <input type="${config.inputType}" name="${
+              config.inputType === "radio" ? "assigned_pharmacy" : "pharmacies"
+            }" value="${pharmacy.id}" id="pharmacy-${pharmacy.id}">
+                ${pharmacy.name}
+              </label>
+            `;
+            dropdownMenu.appendChild(item);
+          });
+
+          dropdownMenu.addEventListener("click", (e) => e.stopPropagation());
+
+          dropdownMenu.addEventListener("change", () => {
+            let selectedLabels = [];
+
+            if (config.inputType === "checkbox") {
+              selectedLabels = Array.from(
+                dropdownMenu.querySelectorAll("input[type='checkbox']:checked")
+              ).map((input) => input.parentElement.textContent.trim());
+            } else {
+              const selectedRadio = dropdownMenu.querySelector(
+                "input[type='radio']:checked"
+              );
+              selectedLabels = selectedRadio
+                ? [selectedRadio.parentElement.textContent.trim()]
+                : [];
+            }
+
+            dropdownButton.textContent = selectedLabels.length
+              ? selectedLabels.join(", ")
+              : config.placeholder;
+          });
+
+          pharmaciesLoaded = true;
+        })
+        .catch((error) => {
+          console.error("Error fetching pharmacies:", error);
+        });
     });
+  });
+}
+
+// eye button in password field
+function togglePassword(inputId, icon) {
+  const input = document.getElementById(inputId);
+  if (input.type === "password") {
+    input.type = "text";
+    icon.classList.remove("bi-eye-slash");
+    icon.classList.add("bi-eye");
+  } else {
+    input.type = "password";
+    icon.classList.remove("bi-eye");
+    icon.classList.add("bi-eye-slash");
+  }
+}
+
+function handleInput(input, iconId) {
+  const icon = document.getElementById(iconId);
+  icon.style.display = input.value.length > 0 ? "block" : "none";
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  document.addEventListener("click", function (e) {
+    const password1Elem = document.getElementById("password1");
+    const password2Elem = document.getElementById("password2");
+    const errorMsg = document.getElementById("password-error");
+
+    // Null check to avoid errors
+    if (!password1Elem || !password2Elem || !errorMsg) return;
+
+    const password1 = password1Elem.value;
+    const password2 = password2Elem.value;
+
+    if (password1 && password2) {
+      if (password1 !== password2) {
+        errorMsg.style.display = "block";
+      } else {
+        errorMsg.style.display = "none";
+      }
+    } else {
+      errorMsg.style.display = "none";
+    }
   });
 });
 
@@ -390,12 +351,10 @@ function initCreateManagerForm() {
   submitBtn.addEventListener("click", function (e) {
     e.preventDefault();
 
-    // ✅ Sahi selector
     const selectedPharmacies = document.querySelectorAll(
       'input[name="pharmacies"]:checked'
     );
 
-    // ✅ Alert only if none selected
     if (selectedPharmacies.length === 0) {
       alert("At-Least 1 Pharmacy must be Added");
       return;
@@ -445,18 +404,15 @@ function initCreateStaffForm() {
   submitBtn.addEventListener("click", function (e) {
     e.preventDefault();
 
-    // ✅ Check if a radio is selected
     const selectedPharmacy = form.querySelector(
-      'input[name="pharmacies"]:checked'
+      'input[name="assigned_pharmacy"]:checked'
     );
 
     if (!selectedPharmacy) {
-      // ❌ No selection made — show alert
-      alert("At-Least 1 Pharmacy must be Added");
+      alert("A pharmacy must be assigned to the staff member.");
       return;
     }
 
-    // ✅ Proceed with submission
     const csrfToken = document.querySelector(
       "[name=csrfmiddlewaretoken]"
     ).value;
@@ -468,7 +424,7 @@ function initCreateStaffForm() {
       email: form.email.value,
       password1: form.password1.value,
       password2: form.password2.value,
-      pharmacies: [selectedPharmacy.value], // send selected radio pharmacy
+      assigned_pharmacy: selectedPharmacy.value,
     };
 
     fetch("/create-staff/", {
@@ -484,8 +440,11 @@ function initCreateStaffForm() {
         if (data.success) {
           alert("Staff created successfully!");
           form.reset();
+          // Also reset the dropdown button text
+          const dropdownButton = document.querySelector("#staff-form .dropdown-toggle");
+          if(dropdownButton) dropdownButton.textContent = "Select Pharmacy";
         } else {
-          alert("Error: " + (data.error || "Could not create staff."));
+          alert("Error: " + (JSON.stringify(data.errors) || data.error || "Could not create staff."));
         }
       })
       .catch(() => alert("Something went wrong."));
@@ -539,52 +498,290 @@ function initCreateAdminForm() {
 function initInventoryPage() {
   const pharmacyDropdown = document.getElementById("pharmacy-dropdown");
   const locationDropdown = document.getElementById("location-select");
+  const pharmacyIdInput = document.getElementById("pharmacy-id");
+  const pharmacyNameInput = document.getElementById("pharmacy-name");
 
   if (!pharmacyDropdown || !locationDropdown) return;
 
-  // 📦 Hide location dropdown initially
-  locationDropdown.style.display = "none";
+  locationDropdown.classList.add("hidden");
 
-  // 🏥 Load pharmacies
   fetch("/inventory/api/pharmacies/")
     .then((response) => response.json())
-    .then((data) => {
-      pharmacyDropdown.innerHTML = '<option selected disabled>Select Pharmacy</option>';
+    .then((result) => {
+      if(result.success && result.pharmacies) {
+        pharmacyDropdown.innerHTML =
+          "<option selected disabled>Select Pharmacy</option>";
 
-      data.forEach((pharmacy) => {
-        const option = document.createElement("option");
-        option.value = pharmacy.id;
-        option.textContent = pharmacy.name; // ✅ Only name shown
-        option.dataset.location = pharmacy.location; // 💾 Store location for later
-        pharmacyDropdown.appendChild(option);
-      });
+        result.pharmacies.forEach((pharmacy) => {
+          const option = document.createElement("option");
+          option.value = pharmacy.id;
+          option.textContent = pharmacy.name;
+          option.dataset.name = pharmacy.name;
+          option.dataset.location = pharmacy.location;
+          pharmacyDropdown.appendChild(option);
+        });
+      }
     })
     .catch((error) => {
       console.error("Error loading pharmacies:", error);
     });
 
-  // 🚀 On pharmacy select
   pharmacyDropdown.addEventListener("change", function () {
     const selectedOption = this.options[this.selectedIndex];
     const location = selectedOption.dataset.location;
+    const name = selectedOption.dataset.name;
+    const id = selectedOption.value;
 
     if (location) {
-      locationDropdown.innerHTML = ""; // 🧹 Clear previous options
+      locationDropdown.innerHTML = "";
       const option = document.createElement("option");
       option.textContent = location;
-      option.value = "selected-location"; // optional
+      option.value = "selected-location";
       locationDropdown.appendChild(option);
-
-      // ✅ Show location dropdown
-      locationDropdown.style.display = "block";
+      locationDropdown.classList.remove("hidden");
     } else {
-      // ❌ Fallback (shouldn’t happen if data is correct)
-      locationDropdown.style.display = "none";
+      locationDropdown.classList.add("hidden");
+    }
+
+    pharmacyIdInput.value = id;
+    pharmacyNameInput.value = name;
+  });
+
+  document.getElementById("uploadForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    const form = e.target;
+    const formData = new FormData(form);
+
+    fetch("/inventory/upload-inventory-excel/", {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
+      },
+      body: formData,
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        alert(data.message || "Upload complete");
+        console.log(data);
+      })
+      .catch((error) => {
+        console.error("Upload failed:", error);
+        alert("Error uploading file.");
+      });
+  });
+
+  initFileInputBrowse();
+}
+
+function initFileInputBrowse() {
+  const fileInput = document.getElementById("file-input");
+  const fileName = document.getElementById("file-name");
+  const browseBtn = document.getElementById("browse-btn");
+
+  if (!fileInput || !browseBtn || !fileName) return;
+
+  browseBtn.addEventListener("click", function () {
+    fileInput.click();
+  });
+
+  fileInput.addEventListener("change", function () {
+    if (fileInput.files.length > 0) {
+      fileName.value = fileInput.files[0].name;
     }
   });
 }
 
+function initSeeInventoryPage() {
+    const dropdown = document.getElementById('pharmacy-dropdown');
+    const tableContainer = document.getElementById('inventory-table-container');
+    const tableBody = document.getElementById('inventory-table-body');
+    const noInventoryMsg = document.getElementById('no-inventory-message');
+    const pharmacyIdInput = document.getElementById('pharmacy-id');
+    const pharmacyNameInput = document.getElementById('pharmacy-name');
+    const locationSelect = document.getElementById('location-select');
 
+    if (!dropdown || !tableContainer || !tableBody) return;
+
+    fetch('/inventory/api/pharmacies/')
+        .then(response => response.json())
+        .then(result => {
+            if(result.success && result.pharmacies) {
+              dropdown.innerHTML = '<option value="" selected>All Assigned Pharmacies</option>';
+              result.pharmacies.forEach(pharmacy => {
+                  const option = document.createElement('option');
+                  option.value = pharmacy.id;
+                  option.textContent = pharmacy.name;
+                  option.dataset.name = pharmacy.name;
+                  option.dataset.location = pharmacy.location;
+                  dropdown.appendChild(option);
+              });
+            }
+        });
+
+    function fetchAndRenderInventory(pharmacyId = "") {
+        let url = '/inventory/api/inventory/';
+        if (pharmacyId) {
+            url += `?pharmacy_id=${pharmacyId}`;
+        }
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                tableBody.innerHTML = '';
+                if (data.success && data.data.length > 0) {
+                    data.data.forEach(item => {
+                        const row = `<tr>
+                            <td>${item.prd_code}</td>
+                            <td>${item.name}</td>
+                            <td>${item.pharmacy_name}</td>
+                            <td>${item.location}</td>
+                            <td>${item.qty}</td>
+                            <td>${item.price}</td>
+                            <td>${item.manufacturedate || ''}</td>
+                            <td>${item.expirydate || ''}</td>
+                        </tr>`;
+                        tableBody.innerHTML += row;
+                    });
+                    tableContainer.style.display = '';
+                    noInventoryMsg.style.display = 'none';
+                } else {
+                    tableContainer.style.display = 'none';
+                    noInventoryMsg.style.display = '';
+                }
+            });
+    }
+
+    fetchAndRenderInventory();
+
+    dropdown.addEventListener('change', function () {
+        const selectedOption = this.options[this.selectedIndex];
+        const pharmacyId = this.value;
+        const pharmacyName = selectedOption.dataset ? selectedOption.dataset.name : '';
+        const pharmacyLocation = selectedOption.dataset ? selectedOption.dataset.location : '';
+
+        pharmacyIdInput.value = pharmacyId;
+        pharmacyNameInput.value = pharmacyName;
+
+        if (pharmacyId) {
+            locationSelect.innerHTML = '';
+            locationSelect.disabled = false;
+            locationSelect.classList.remove('hidden');
+            const locationOption = document.createElement('option');
+            locationOption.value = pharmacyLocation;
+            locationOption.textContent = pharmacyLocation;
+            locationSelect.appendChild(locationOption);
+        } else {
+            locationSelect.innerHTML = '';
+            locationSelect.disabled = true;
+            locationSelect.classList.add('hidden');
+        }
+
+        fetchAndRenderInventory(pharmacyId);
+    });
+}
+
+function fetchManagersData() {
+  console.log('fetchManagersData called - fetching managers data...');
+  
+  // Check if table element exists
+  const tableBody = document.getElementById('managers-table-body');
+  console.log('Table body element found:', !!tableBody);
+  if (tableBody) {
+    console.log('Table body HTML before fetch:', tableBody.innerHTML);
+  }
+  
+  fetch('/roles/api/managers/')
+    .then(response => {
+      console.log('Response status:', response.status);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('Managers data received:', data);
+      // Render your managers table here
+      const tableBody = document.getElementById('managers-table-body');
+      if (tableBody) {
+        if (data && data.length > 0) {
+          tableBody.innerHTML = data.map(manager => `
+            <tr>
+              <td>${manager.manager_name || ''}</td>
+              <td>${manager.date_joined ? new Date(manager.date_joined).toLocaleDateString() : ''}</td>
+              <td>${manager.email || ''}</td>
+              <td>${manager.name || ''}</td>
+              <td>${manager.location || ''}</td>
+            </tr>
+          `).join('');
+          console.log('Table populated with', data.length, 'managers');
+          console.log('Table body HTML after population:', tableBody.innerHTML);
+        } else {
+          tableBody.innerHTML = '<tr><td colspan="5" class="text-center">No managers found</td></tr>';
+          console.log('No managers found');
+        }
+      } else {
+        console.error('Table body element not found');
+      }
+    })
+    .catch(error => {
+      console.error('Error loading managers:', error);
+      const tableBody = document.getElementById('managers-table-body');
+      if (tableBody) {
+        tableBody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Error loading managers: ' + error.message + '</td></tr>';
+      }
+    });
+}
+
+function fetchStaffData() {
+  const staffTableBody = document.getElementById("staff-table-body");
+  const staffTableHead = document.getElementById("staff-table-head");
+
+  console.log('fetchStaffData called - fetching staff data...');
+  
+  // Check if table element exists
+  console.log('Staff table body element found:', !!staffTableBody);
+  if (staffTableBody) {
+    console.log('Staff table body HTML before fetch:', staffTableBody.innerHTML);
+  }
+  
+  fetch('/roles/api/staff/')
+    .then(response => {
+      console.log('Staff response status:', response.status);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('Staff data received:', data);
+      // Render your staff table here
+      if (staffTableBody) {
+        if (data && data.length > 0) {
+          const tableRows = data.map(staff => `
+            <tr>
+              <td>${staff.staff_name || ''}</td>
+              <td>${staff.date_joined ? new Date(staff.date_joined).toLocaleDateString() : ''}</td>
+              <td>${staff.email || ''}</td>
+              <td>${staff.name || ''}</td>
+              <td>${staff.location || ''}</td>
+              <td>${staff.phm_id || ''}</td>
+            </tr>
+          `).join('');
+          staffTableBody.innerHTML = tableRows;
+          console.log('Staff table populated with', data.length, 'staff members');
+          console.log('Staff table body HTML after population:', staffTableBody.innerHTML);
+        } else {
+          staffTableBody.innerHTML = '<tr><td colspan="6" class="text-center">No staff found</td></tr>';
+          console.log('No staff found');
+        }
+      } else {
+        console.error('Staff table body element not found');
+      }
+    })
+    .catch((error) => {
+      console.error("Error fetching staff data:", error);
+      staffTableBody.innerHTML = `<tr><td colspan="5" class="text-center text-danger">Error loading staff. ${error}</td></tr>`;
+    });
+}
 
 // ✅ On Page Load
 document.addEventListener("DOMContentLoaded", () => {
@@ -594,4 +791,5 @@ document.addEventListener("DOMContentLoaded", () => {
   initCreateManagerForm();
   initCreateStaffForm();
   initCreateAdminForm();
+  initInventoryPage();
 });

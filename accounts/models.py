@@ -19,7 +19,9 @@ class CustomUser(AbstractUser):
         blank=True,
         related_name='staff_users'
     )
-
+    class Meta:
+        managed = False  # Since the table is already created in the database
+        db_table = 'accounts_customuser'
     # ❌ Remove this line (it clashes with Pharmacy.managers related_name)
     # managed_pharmacies = models.ManyToManyField('pharmacies.Pharmacy', blank=True)
 

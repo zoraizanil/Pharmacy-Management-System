@@ -1,42 +1,41 @@
 <div class="container mt-3">
-    <h3 class="mb-3">Inventory</h3>
+    <h3 class="mb-3 text-center">Inventory Upload</h3>
 
-    <!-- 🔄 Flex Container for Both Dropdowns -->
-    <div class="d-flex justify-content-center align-items-center gap-3 mb-4">
+    <form id="uploadForm" enctype="multipart/form-data">
+        {% csrf_token %}
 
+        <div class="add-inventory-form">
+            <!-- Pharmacy Dropdown -->
+            <div class="form-group-wrapper">
+                <label for="pharmacy-dropdown" class="form-label">Select Pharmacy</label>
+                <select id="pharmacy-dropdown" class="form-select form-select-sm" aria-label="Select Pharmacy">
+                    <option selected disabled>Loading Pharmacies...</option>
+                </select>
+            </div>
 
-        <select id="pharmacy-dropdown" class="form-select form-select-sm w-25" aria-label="Select Pharmacy">
-            <option selected disabled>Loading Pharmacies...</option>
-        </select>
+            <!-- Location Dropdown -->
+            <div class="form-group-wrapper">
+                <label for="location-select" class="form-label">Location</label>
+                <select id="location-select" class="form-select form-select-sm hidden" disabled></select>
+            </div>
 
-        <select style="display: none;" id="location-select" class="form-select form-select-sm w-25"
-            aria-label="Select Location">
-            <option selected disabled>Select Location</option>
-        </select>
-    </div>
+            <!-- Hidden Fields to Send Pharmacy Info -->
+            <input type="hidden" name="pharmacy_id" id="pharmacy-id">
+            <input type="hidden" name="pharmacy_name" id="pharmacy-name">
+        </div>
 
-    <!-- Inventory content area -->
-    <div id="inventory-content">
-
-    </div>
+        <!-- File Upload -->
+        <div class="upload-file">
+            <label class="form-label">Upload Excel <span class="text-muted">(.xlsx)</span></label>
+            <div class="input-group shadow">
+                <span class="input-group-text px-3">
+                    <i class="bi bi-file-earmark-arrow-up fs-5"></i>
+                </span>
+                <input type="file" name="uploaded_file" id="file-input" class="d-none" required>
+                <input type="text" id="file-name" class="form-control" placeholder="Choose file" readonly>
+                <button type="button" id="browse-btn" class="btn upload-file-btn">Browse</button>
+            </div>
+            <button type="submit" class="btn btn-primary mt-3">Upload Inventory</button>
+        </div>
+    </form>
 </div>
-
-
-
-
-
-
-
-
-
-
-
-<!-- 🔽 Pharmacy Dropdown -->
-<!-- <select class="form-select form-select-sm w-25" aria-label="Select Pharmacy">
-            
-            {% for pharmacy in pharmacies %}
-            <option value="{{ pharmacy.id }}">{{ pharmacy.name }} - {{ pharmacy.location }}</option>
-            {% empty %}
-            <option disabled>No pharmacies found</option>
-            {% endfor %}
-        </select> -->

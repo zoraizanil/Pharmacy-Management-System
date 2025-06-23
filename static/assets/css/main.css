@@ -419,7 +419,7 @@ h6 {
 --------------------------------------------------------------*/
 .hero {
   width: 100%;
-  min-height: 75vh;
+  min-height: 90vh;
   position: relative;
   padding: 60px 0;
   display: flex;
@@ -436,6 +436,8 @@ h6 {
   top: 0;
   left: 0;
   right: 0;
+  z-index: -1;
+  backdrop-filter: brightness(0.7);
 }
 
 .hero .container {

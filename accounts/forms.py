@@ -1,4 +1,5 @@
 from django import forms
+from django.db import connection
 
 class LoginForm(forms.Form):
     username = forms.CharField()
@@ -27,8 +28,9 @@ from pharmacies.models import Pharmacy
 # accounts/forms.py
 
 class ManagerCreationForm(UserCreationForm):
-    pharmacies = forms.ModelMultipleChoiceField(
-        queryset=Pharmacy.objects.all(),
+    # Custom field that uses raw SQL to get pharmacies
+    pharmacies = forms.MultipleChoiceField(
+        choices=[],
         required=True,
         widget=forms.CheckboxSelectMultiple
     )
@@ -36,6 +38,15 @@ class ManagerCreationForm(UserCreationForm):
     class Meta:
         model = CustomUser
         fields = ['username', 'first_name', 'last_name', 'email', 'password1', 'password2', 'pharmacies']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Populate pharmacies choices using raw SQL
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT id, name FROM pharmacies_pharmacy ORDER BY name")
+            pharmacies_data = cursor.fetchall()
+        
+        self.fields['pharmacies'].choices = [(str(row[0]), row[1]) for row in pharmacies_data]
 
     def clean(self):
         cleaned_data = super().clean()
@@ -47,7 +58,7 @@ class ManagerCreationForm(UserCreationForm):
         if not pharmacies:
             print("No pharmacies selected")
             raise forms.ValidationError("Please select at least one pharmacy")
-        print("Selected pharmacies:", [p.name for p in pharmacies])
+        print("Selected pharmacies:", pharmacies)
         return cleaned_data
 
     def save(self, commit=True):
@@ -60,11 +71,17 @@ class ManagerCreationForm(UserCreationForm):
             try:
                 user.save()
                 print("User saved successfully")
-                pharmacies = self.cleaned_data['pharmacies']
-                print("Assigning pharmacies:", [p.name for p in pharmacies])
-                for pharmacy in pharmacies:
-                    pharmacy.managers.add(user)
-                    print(f"Added manager to pharmacy: {pharmacy.name}")
+                pharmacy_ids = self.cleaned_data['pharmacies']
+                print("Assigning pharmacies:", pharmacy_ids)
+                
+                # Link pharmacies to manager using raw SQL
+                with connection.cursor() as cursor:
+                    for pharmacy_id in pharmacy_ids:
+                        cursor.execute("""
+                            INSERT INTO pharmacies_pharmacy_managers (pharmacy_id, customuser_id) 
+                            VALUES (%s, %s)
+                        """, [int(pharmacy_id), user.id])
+                        print(f"Added manager to pharmacy ID: {pharmacy_id}")
             except Exception as e:
                 print("Error in save method:", str(e))
                 raise
@@ -72,16 +89,34 @@ class ManagerCreationForm(UserCreationForm):
 
 
 class StaffCreationForm(UserCreationForm):
-    assigned_pharmacy = forms.ModelChoiceField(queryset=Pharmacy.objects.all(), required=True)
+    # Custom field that uses raw SQL to get pharmacies
+    assigned_pharmacy = forms.ChoiceField(
+        choices=[],
+        required=True
+    )
 
     class Meta:
         model = CustomUser
         fields = ['username', 'first_name', 'last_name', 'email', 'password1', 'password2', 'assigned_pharmacy']
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Populate pharmacy choices using raw SQL
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT id, name FROM pharmacies_pharmacy ORDER BY name")
+            pharmacies_data = cursor.fetchall()
+        
+        self.fields['assigned_pharmacy'].choices = [('', 'Select a pharmacy')] + [(str(row[0]), row[1]) for row in pharmacies_data]
+
     def save(self, commit=True):
         user = super().save(commit=False)
         user.role = 'STAFF'
-        user.assigned_pharmacy = self.cleaned_data.get('assigned_pharmacy')
+        
+        # Get pharmacy ID from form data
+        pharmacy_id = self.cleaned_data.get('assigned_pharmacy')
+        if pharmacy_id:
+            user.assigned_pharmacy_id = int(pharmacy_id)
+        
         if commit:
             user.save()
         return user
