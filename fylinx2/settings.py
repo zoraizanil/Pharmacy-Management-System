@@ -20,7 +20,9 @@ SECRET_KEY = 'django-insecure-28cs340ovj!%cka&tfhv7u9lx%bh6-=yaec+i6h^xm3h$tq4lu
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'xzagx.pythonanywhere.com', '127.0.0.1', 'localhost',
+]
 
 
 # Application definition
@@ -33,7 +35,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'accounts',
-    'static',
+    # 'static',
     'pharmacies',
     'inventory',
     'sales',
@@ -99,18 +101,15 @@ STATICFILES_DIRS = [
 # }
 
 
+
 DATABASES = {
     'default': {
-        'ENGINE': 'mssql',
-        'NAME': 'sa202513',
-        'USER': 'sa',
-        'PASSWORD': '1234-sa',
-        'HOST': 'localhost',
-        'PORT': '1433',  # 1433 is the default SQL Server port
-        'OPTIONS': {
-            'driver': 'ODBC Driver 18 for SQL Server',
-            'extra_params': 'Encrypt=yes;TrustServerCertificate=yes;',
-        },
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'xZAGx$pharmacy_db',
+        'USER': 'xZAGx',
+        'PASSWORD': 'sasuke22',  # ← Jo PythonAnywhere DB create karte waqt diya tha
+        'HOST': 'xZAGx.mysql.pythonanywhere-services.com',
+        'PORT': '3306',
     }
 }
 
